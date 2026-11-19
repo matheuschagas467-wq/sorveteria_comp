@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controle de Estoque - Sorveteria</title>
+<style>
+:root{
+  --bg:#fff8f1; --card:#ffffff; --ink:#3d2522; --muted:#8a6f6a; --line:#f0e0d6;
+  --berry:#d6336c; --berry-d:#b02357; --berry-l:#ffe3ec;
+  --mint:#1f9d86; --mint-l:#dcf5ee; --amber:#c77700; --amber-l:#fff0d1;
+  --red:#c92a2a; --red-l:#ffe0e0; --gray-l:#efe9e4;
+  --radius:14px; --shadow:0 2px 10px rgba(120,60,40,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif}
+header{background:linear-gradient(120deg,var(--berry),#f0719a);color:#fff;padding:18px 16px 0}
+.wrap{max-width:1100px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:12px;padding-bottom:12px}
+.brand .logo{font-size:34px;line-height:1}
+.brand h1{font-size:1.25rem;margin:0;font-weight:700}
+.brand p{margin:0;font-size:.85rem;opacity:.9}
+nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;border:0;background:transparent;color:#fff;font:inherit;font-weight:600;padding:10px 16px;border-radius:12px 12px 0 0;cursor:pointer;opacity:.85}
+nav button:hover{opacity:1;background:rgba(255,255,255,.15)}
+nav button.on{background:var(--bg);color:var(--berry-d);opacity:1}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+h2{margin:0 0 14px;font-size:1.3rem}
+h3{margin:0 0 10px;font-size:1.05rem}
+.grid{display:grid;gap:14px}
+.cards{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:18px}
+.two{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.stat .lbl{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.stat .val{font-size:1.9rem;font-weight:700;margin-top:4px}
+.stat .sub{font-size:.82rem;color:var(--muted)}
+.stat.warn .val{color:var(--red)}
+.stat.ok .val{color:var(--mint)}
+label{display:block;font-size:.85rem;font-weight:600;margin-bottom:4px;color:var(--muted)}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid #f7a8c1;outline-offset:1px;border-color:var(--berry)}
+textarea{min-height:70px;resize:vertical}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.form .full{grid-column:1/-1}
+.btn{border:0;border-radius:10px;padding:11px 18px;font:inherit;font-weight:700;cursor:pointer;background:var(--berry);color:#fff;min-height:44px}
+.btn:hover{background:var(--berry-d)}
+.btn.sec{background:#fff;color:var(--berry-d);border:1.5px solid var(--berry)}
+.btn.sec:hover{background:var(--berry-l)}
+.btn.sm{padding:6px 12px;min-height:34px;font-size:.85rem}
+.btn.danger{background:#fff;color:var(--red);border:1.5px solid #f2b8b8}
+.btn.danger:hover{background:var(--red-l)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{border:2px solid var(--line);background:#fff;border-radius:12px;padding:14px;font:inherit;font-weight:700;cursor:pointer;color:var(--muted)}
+.seg button.on.ent{background:var(--mint-l);border-color:var(--mint);color:var(--mint)}
+.seg button.on.sai{background:var(--red-l);border-color:var(--red);color:var(--red)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:14px}
+.toolbar>div{flex:1 1 150px}
+.toolbar .push{flex:0 0 auto}
+.tablewrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--line);background:#fff;box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th{background:#fdeee6;text-align:left;padding:10px 12px;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);white-space:nowrap;position:sticky;top:0}
+td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:middle}
+tr:hover td{background:#fffaf6}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.b-ok{background:var(--mint-l);color:var(--mint)}
+.b-rep{background:var(--red-l);color:var(--red)}
+.b-sem{background:var(--gray-l);color:var(--muted)}
+.b-ent{background:var(--mint-l);color:var(--mint)}
+.b-sai{background:var(--red-l);color:var(--red)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.hint{font-size:.85rem;color:var(--muted);margin-top:6px}
+.saldo-box{background:var(--amber-l);color:var(--amber);border-radius:10px;padding:10px 12px;font-weight:600;font-size:.92rem;min-height:44px;display:flex;align-items:center}
+.saldo-box.neg{background:var(--red-l);color:var(--red)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--red)}
+.hidden{display:none!important}
+.actions{display:flex;gap:6px;justify-content:flex-end}
+@media (max-width:600px){.stat .val{font-size:1.5rem} main{padding-top:14px} th,td{padding:8px}}
+@media print{header,.toolbar,.btn,.actions{display:none!important} body{background:#fff}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><div class="logo" aria-hidden="true">🍦</div><div><h1>Controle de Estoque</h1><p>Sorveteria · entradas e saídas de produtos</p></div></div>
+    <nav id="nav" aria-label="Seções">
+      <button data-v="painel" class="on">Painel</button>
+      <button data-v="mov">Movimentar</button>
+      <button data-v="estoque">Estoque</button>
+      <button data-v="hist">Histórico</button>
+      <button data-v="prod">Produtos</button>
+      <button data-v="backup">Backup</button>
+    </nav>
+  </div>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ================= Dados ================= */
+const KEY='sorveteria_estoque_v1';
+const CATS=['Insumos','Sorvete em massa','Picolés','Coberturas e toppings','Embalagens e descartáveis','Limpeza'];
+const UNITS=['kg','g','L','mL','un','pct','cx','balde','pote'];
+const MOT_ENT=['Compra','Produção própria','Devolução','Ajuste de inventário'];
+const MOT_SAI=['Venda','Uso na produção','Perda / vencimento','Consumo interno','Ajuste de inventário'];
+const SEED=[
+['INS-001','Leite integral','Insumos','L',20,4.80],['INS-002','Creme de leite','Insumos','L',10,14],
+['INS-003','Leite condensado','Insumos','kg',10,11],['INS-004','Açúcar','Insumos','kg',20,4.5],
+['INS-005','Leite em pó','Insumos','kg',8,32],['INS-006','Base para sorvete (neutra)','Insumos','kg',10,28],
+['INS-007','Chocolate em pó 50%','Insumos','kg',5,38],['INS-008','Polpa de morango','Insumos','kg',10,16],
+['INS-009','Polpa de maracujá','Insumos','kg',10,14],['INS-010','Polpa de açaí','Insumos','kg',15,18],
+['SOR-001','Sorvete de creme (balde 10 L)','Sorvete em massa','balde',2,95],['SOR-002','Sorvete de chocolate (balde 10 L)','Sorvete em massa','balde',2,105],
+['SOR-003','Sorvete de morango (balde 10 L)','Sorvete em massa','balde',2,105],['SOR-004','Sorvete de flocos (balde 10 L)','Sorvete em massa','balde',2,100],
+['PIC-001','Picolé de fruta','Picolés','un',50,1.6],['PIC-002','Picolé cremoso','Picolés','un',50,2.2],
+['COB-001','Cobertura de chocolate','Coberturas e toppings','kg',4,22],['COB-002','Cobertura de morango','Coberturas e toppings','kg',4,22],
+['COB-003','Granulado colorido','Coberturas e toppings','kg',3,18],['COB-004','Amendoim triturado','Coberturas e toppings','kg',3,20],
+['EMB-001','Casquinha / cone','Embalagens e descartáveis','un',200,.45],['EMB-002','Copo 200 ml','Embalagens e descartáveis','un',200,.18],
+['EMB-003','Copo 300 ml','Embalagens e descartáveis','un',200,.24],['EMB-004','Pote 1 L','Embalagens e descartáveis','un',50,1.2],
+['EMB-005','Pote 2 L','Embalagens e descartáveis','un',50,1.8],['EMB-006','Colher descartável','Embalagens e descartáveis','un',300,.06],
+['EMB-007','Guardanapo','Embalagens e descartáveis','pct',10,3.5],['LIM-001','Detergente neutro','Limpeza','L',5,6],
+['LIM-002','Álcool 70%','Limpeza','L',5,9],['LIM-003','Papel toalha','Limpeza','un',10,4.5]];
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function seedData(){return{produtos:SEED.map(([codigo,nome,categoria,unidade,minimo,custo])=>({id:uid(),codigo,nome,categoria,unidade,minimo,custo})),movs:[],resp:''}}
+let db;
+function load(){try{const r=localStorage.getItem(KEY);if(r){db=JSON.parse(r);if(db&&Array.isArray(db.produtos)&&Array.isArray(db.movs))return}}catch(e){}db=seedData();save()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast('Não foi possível salvar no navegador (armazenamento bloqueado ou cheio).',true)}}
+
+/* ================= Utilidades ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:3});
+const fq=n=>nf.format(n);
+const fm=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(n||0);
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const monthStart=()=>today().slice(0,8)+'01';
+const monthEnd=()=>{const d=new Date();const e=new Date(d.getFullYear(),d.getMonth()+1,0);return`${e.getFullYear()}-${pad(e.getMonth()+1)}-${pad(e.getDate())}`};
+const fd=iso=>iso?iso.split('-').reverse().join('/'):'';
+const num=v=>{const n=parseFloat(String(v).trim().replace(/\./g,m=>/,/.test(v)?'':m).replace(',','.'));return isNaN(n)?null:n};
+const byName=(a,b)=>a.nome.localeCompare(b.nome,'pt-BR');
+let toastT;
+function toast(msg,err){const t=$('#toast');t.textContent=msg;t.className='toast show'+(err?' err':'');clearTimeout(toastT);toastT=setTimeout(()=>t.className='toast',3200)}
+const prodById=id=>db.produtos.find(p=>p.id===id);
+
+/* Cálculo de estoque (mesma lógica da planilha) */
+function calc(from,to){
+  const m={};
+  db.produtos.forEach(p=>m[p.id]={ent:0,sai:0,entP:0,saiP:0,valEnt:0,qCusto:0,n:0});
+  db.movs.forEach(x=>{const s=m[x.produtoId];if(!s)return;s.n++;
+    const inP=(!from||x.data>=from)&&(!to||x.data<=to);
+    if(x.tipo==='Entrada'){s.ent+=x.qtd;if(inP)s.entP+=x.qtd;if(x.custo>0){s.valEnt+=x.qtd*x.custo;s.qCusto+=x.qtd}}
+    else{s.sai+=x.qtd;if(inP)s.saiP+=x.qtd}});
+  db.produtos.forEach(p=>{const s=m[p.id];s.saldo=Math.round((s.ent-s.sai)*1000)/1000;
+    s.custoMed=s.qCusto>0?s.valEnt/s.qCusto:(p.custo||0);s.valor=s.saldo*s.custoMed;
+    s.status=s.n===0?'Sem movimento':(s.saldo<=(p.minimo||0)?'Repor':'OK')});
+  return m;
+}
+const badge=s=>`<span class="badge ${s==='OK'?'b-ok':s==='Repor'?'b-rep':'b-sem'}">${esc(s)}</span>`;
+const tipoBadge=t=>`<span class="badge ${t==='Entrada'?'b-ent':'b-sai'}">${esc(t)}</span>`;
+function csv(name,rows){
+  const body=rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  download(name,'﻿'+body,'text/csv;charset=utf-8');
+}
+function download(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+
+/* ================= Navegação ================= */
+let view='painel';
+const views={painel:vPainel,mov:vMov,estoque:vEstoque,hist:vHist,prod:vProd,backup:vBackup};
+function go(v){view=v;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));views[v]();window.scrollTo(0,0)}
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)go(b.dataset.v)});
+
+/* ================= Painel ================= */
+function vPainel(){
+  const m=calc(monthStart(),monthEnd());
+  const rep=db.produtos.filter(p=>m[p.id].status==='Repor').sort(byName);
+  const valor=db.produtos.reduce((a,p)=>a+m[p.id].valor,0);
+  const mes=db.movs.filter(x=>x.data>=monthStart()&&x.data<=monthEnd());
+  const ents=mes.filter(x=>x.tipo==='Entrada').length,sais=mes.length-ents;
+  const ult=[...db.movs].sort((a,b)=>(b.data+b.id).localeCompare(a.data+a.id)).slice(0,8);
+  $('#app').innerHTML=`
+  <h2>Painel</h2>
+  <div class="grid cards">
+    <div class="card stat"><div class="lbl">Produtos cadastrados</div><div class="val">${db.produtos.length}</div></div>
+    <div class="card stat ${rep.length?'warn':'ok'}"><div class="lbl">Itens para repor</div><div class="val">${rep.length}</div><div class="sub">saldo no mínimo ou abaixo</div></div>
+    <div class="card stat"><div class="lbl">Valor em estoque</div><div class="val">${fm(valor)}</div><div class="sub">pelo custo médio das entradas</div></div>
+    <div class="card stat"><div class="lbl">Movimentações no mês</div><div class="val">${mes.length}</div><div class="sub">${ents} entradas · ${sais} saídas</div></div>
+  </div>
+  <div class="grid two">
+    <section class="card"><h3>⚠️ Precisam de reposição</h3>${rep.length?`<div class="tablewrap" style="box-shadow:none"><table><thead><tr><th>Produto</th><th class="num">Saldo</th><th class="num">Mínimo</th></tr></thead><tbody>${rep.map(p=>`<tr><td>${esc(p.nome)}</td><td class="num"><b>${fq(m[p.id].saldo)}</b> ${esc(p.unidade)}</td><td class="num">${fq(p.minimo||0)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Nada para repor agora. 🎉</div>'}</section>
+    <section class="card"><h3>Últimas movimentações</h3>${ult.length?`<div class="tablewrap" style="box-shadow:none"><table><thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th class="num">Qtd</th></tr></thead><tbody>${ult.map(x=>{const p=prodById(x.produtoId);return`<tr><td>${fd(x.data)}</td><td>${tipoBadge(x.tipo)}</td><td>${esc(p?p.nome:'(removido)')}</td><td class="num">${fq(x.qtd)} ${esc(p?p.unidade:'')}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Nenhuma movimentação ainda.<br><button class="btn sm" style="margin-top:10px" onclick="go(\'mov\')">Registrar a primeira</button></div>'}</section>
+  </div>`;
+}
+
+/* ================= Movimentar ================= */
+let movTipo='Entrada';
+function vMov(){
+  const prods=[...db.produtos].sort(byName);
+  if(!prods.length){$('#app').innerHTML='<h2>Movimentar</h2><div class="card empty">Cadastre ao menos um produto na aba Produtos.</div>';return}
+  $('#app').innerHTML=`
+  <h2>Registrar movimentação</h2>
+  <form class="card" id="fm" novalidate>
+    <div class="seg" style="margin-bottom:16px" id="seg">
+      <button type="button" data-t="Entrada" class="ent">⬇️ Entrada</button>
+      <button type="button" data-t="Saída" class="sai">⬆️ Saída</button>
+    </div>
+    <div class="form">
+      <div><label for="f-data">Data</label><input type="date" id="f-data" value="${today()}" required></div>
+      <div class="full"><label for="f-prod">Produto</label><select id="f-prod" required><option value="">Selecione…</option>${CATS.concat([...new Set(prods.map(p=>p.categoria).filter(c=>c&&!CATS.includes(c)))]).map(c=>{const l=prods.filter(p=>p.categoria===c);return l.length?`<optgroup label="${esc(c)}">${l.map(p=>`<option value="${p.id}">${esc(p.nome)}</option>`).join('')}</optgroup>`:''}).join('')}${prods.filter(p=>!p.categoria).map(p=>`<option value="${p.id}">${esc(p.nome)}</option>`).join('')}</select></div>
+      <div><label>Saldo atual</label><div class="saldo-box" id="f-saldo">—</div></div>
+      <div><label for="f-qtd">Quantidade <span id="f-un"></span></label><input id="f-qtd" inputmode="decimal" placeholder="Ex.: 10 ou 2,5" required></div>
+      <div id="w-custo"><label for="f-custo">Custo unitário (R$) — opcional</label><input id="f-custo" inputmode="decimal" placeholder="Ex.: 4,80"></div>
+      <div><label for="f-mot">Motivo</label><select id="f-mot"></select></div>
+      <div><label for="f-parc" id="l-parc">Fornecedor</label><input id="f-parc" maxlength="80"></div>
+      <div><label for="f-resp">Responsável</label><input id="f-resp" maxlength="60" value="${esc(db.resp||'')}"></div>
+      <div class="full"><label for="f-obs">Observação</label><input id="f-obs" maxlength="200"></div>
+    </div>
+    <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="submit" id="f-ok">Registrar entrada</button><button class="btn sec" type="reset" id="f-clr">Limpar</button></div>
+  </form>`;
+  const setTipo=t=>{movTipo=t;document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+    $('#f-mot').innerHTML=(t==='Entrada'?MOT_ENT:MOT_SAI).map(x=>`<option>${x}</option>`).join('');
+    $('#w-custo').classList.toggle('hidden',t!=='Entrada');
+    $('#l-parc').textContent=t==='Entrada'?'Fornecedor':'Destino / cliente';
+    $('#f-ok').textContent='Registrar '+t.toLowerCase();$('#f-ok').style.background=t==='Entrada'?'var(--mint)':'var(--red)';refreshSaldo()};
+  function refreshSaldo(){const id=$('#f-prod').value,box=$('#f-saldo');
+    if(!id){box.textContent='—';box.classList.remove('neg');$('#f-un').textContent='';return}
+    const p=prodById(id),s=calc()[id];box.textContent=`${fq(s.saldo)} ${p.unidade}`;box.classList.toggle('neg',s.saldo<=(p.minimo||0));
+    $('#f-un').textContent=`(${p.unidade})`;if(movTipo==='Entrada'&&!$('#f-custo').value)$('#f-custo').placeholder=p.custo?`Ref.: ${String(p.custo).replace('.',',')}`:'Ex.: 4,80'}
+  $('#seg').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTipo(b.dataset.t)});
+  $('#f-prod').addEventListener('change',refreshSaldo);
+  $('#f-clr').addEventListener('click',()=>setTimeout(()=>{setTipo(movTipo);$('#f-data').value=today()},0));
+  $('#fm').addEventListener('submit',e=>{e.preventDefault();
+    const id=$('#f-prod').value,qtd=num($('#f-qtd').value),data=$('#f-data').value,custoTxt=$('#f-custo').value.trim();
+    if(!data)return toast('Informe a data.',true);
+    if(!id)return toast('Escolha o produto.',true);
+    if(qtd===null||qtd<=0)return toast('Digite uma quantidade maior que zero.',true);
+    const custo=movTipo==='Entrada'&&custoTxt?num(custoTxt):0;
+    if(custo===null||custo<0)return toast('Custo unitário inválido.',true);
+    const p=prodById(id),saldo=calc()[id].saldo;
+    if(movTipo==='Saída'&&qtd>saldo+1e-9&&!confirm(`Saldo atual: ${fq(saldo)} ${p.unidade}. A saída de ${fq(qtd)} deixará o estoque negativo. Registrar mesmo assim?`))return;
+    db.resp=$('#f-resp').value.trim();
+    db.movs.push({id:uid(),data,tipo:movTipo,produtoId:id,qtd,custo,motivo:$('#f-mot').value,parceiro:$('#f-parc').value.trim(),resp:db.resp,obs:$('#f-obs').value.trim()});
+    save();toast(`${movTipo} registrada: ${fq(qtd)} ${p.unidade} de ${p.nome}.`);
+    const t=movTipo;vMov();document.querySelector(`#seg [data-t="${t}"]`).click();
+  });
+  setTipo(movTipo);
+}
+
+/* ================= Estoque ================= */
+let fEst={q:'',cat:'',st:'',from:null,to:null};
+function vEstoque(){
+  if(!fEst.from){fEst.from=monthStart();fEst.to=monthEnd()}
+  $('#app').innerHTML=`
+  <h2>Posição de estoque</h2>
+  <div class="toolbar">
+    <div><label for="e-q">Buscar produto</label><input id="e-q" type="search" value="${esc(fEst.q)}" placeholder="Nome ou código"></div>
+    <div><label for="e-cat">Categoria</label><select id="e-cat"><option value="">Todas</option>${[...new Set(db.produtos.map(p=>p.categoria).filter(Boolean))].map(c=>`<option ${c===fEst.cat?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
+    <div><label for="e-st">Status</label><select id="e-st">${['','Repor','OK','Sem movimento'].map(s=>`<option value="${s}" ${s===fEst.st?'selected':''}>${s||'Todos'}</option>`).join('')}</select></div>
+    <div><label for="e-de">Período de</label><input type="date" id="e-de" value="${fEst.from}"></div>
+    <div><label for="e-ate">até</label><input type="date" id="e-ate" value="${fEst.to}"></div>
+    <div class="push"><button class="btn sec" id="e-csv">Exportar CSV</button></div>
+  </div>
+  <div class="tablewrap"><table><thead><tr><th>Código</th><th>Produto</th><th>Categoria</th><th class="num">Entradas (período)</th><th class="num">Saídas (período)</th><th class="num">Saldo atual</th><th class="num">Mínimo</th><th>Status</th><th class="num">Valor em estoque</th></tr></thead><tbody id="e-body"></tbody><tfoot id="e-foot"></tfoot></table></div>
+  <p class="hint">Entradas e saídas respeitam o período escolhido; o saldo considera todas as movimentações. Valor = saldo × custo médio das entradas.</p>`;
+  const draw=()=>{
+    const m=calc(fEst.from,fEst.to),q=fEst.q.toLowerCase();
+    const l=db.produtos.filter(p=>(!q||p.nome.toLowerCase().includes(q)||(p.codigo||'').toLowerCase().includes(q))&&(!fEst.cat||p.categoria===fEst.cat)&&(!fEst.st||m[p.id].status===fEst.st)).sort(byName);
+    $('#e-body').innerHTML=l.length?l.map(p=>{const s=m[p.id];return`<tr><td>${esc(p.codigo)}</td><td><b>${esc(p.nome)}</b></td><td>${esc(p.categoria)}</td><td class="num">${fq(s.entP)}</td><td class="num">${fq(s.saiP)}</td><td class="num"><b>${fq(s.saldo)}</b> ${esc(p.unidade)}</td><td class="num">${fq(p.minimo||0)}</td><td>${badge(s.status)}</td><td class="num">${fm(s.valor)}</td></tr>`}).join(''):'<tr><td colspan="9" class="empty">Nenhum produto encontrado.</td></tr>';
+    $('#e-foot').innerHTML=l.length?`<tr><td colspan="8" class="num"><b>Total em estoque</b></td><td class="num"><b>${fm(l.reduce((a,p)=>a+m[p.id].valor,0))}</b></td></tr>`:'';
+    draw.rows=l.map(p=>{const s=m[p.id];return[p.codigo,p.nome,p.categoria,p.unidade,s.entP,s.saiP,s.saldo,p.minimo||0,s.status,s.valor.toFixed(2).replace('.',',')].map(v=>typeof v==='number'?String(v).replace('.',','):v)});
+  };
+  $('#e-q').oninput=e=>{fEst.q=e.target.value;draw()};
+  $('#e-cat').onchange=e=>{fEst.cat=e.target.value;draw()};
+  $('#e-st').onchange=e=>{fEst.st=e.target.value;draw()};
+  $('#e-de').onchange=e=>{fEst.from=e.target.value||monthStart();draw()};
+  $('#e-ate').onchange=e=>{fEst.to=e.target.value||monthEnd();draw()};
+  $('#e-csv').onclick=()=>csv(`estoque_${today()}.csv`,[['Código','Produto','Categoria','Unidade','Entradas no período','Saídas no período','Saldo atual','Mínimo','Status','Valor em estoque (R$)'],...draw.rows]);
+  draw();
+}
+
+/* ================= Histórico ================= */
+let fH={from:'',to:'',tipo:'',q:''};
+function vHist(){
+  $('#app').innerHTML=`
+  <h2>Histórico de movimentações</h2>
+  <div class="toolbar">
+    <div><label for="h-de">De</label><input type="date" id="h-de" value="${fH.from}"></div>
+    <div><label for="h-ate">Até</label><input type="date" id="h-ate" value="${fH.to}"></div>
+    <div><label for="h-t">Tipo</label><select id="h-t">${['','Entrada','Saída'].map(s=>`<option value="${s}" ${s===fH.tipo?'selected':''}>${s||'Todos'}</option>`).join('')}</select></div>
+    <div><label for="h-q">Buscar</label><input id="h-q" type="search" value="${esc(fH.q)}" placeholder="Produto, motivo, responsável…"></div>
+    <div class="push"><button class="btn sec" id="h-csv">Exportar CSV</button></div>
+  </div>
+  <div class="tablewrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th class="num">Quantidade</th><th class="num">Custo unit.</th><th>Motivo</th><th>Fornecedor / destino</th><th>Responsável</th><th>Obs.</th><th></th></tr></thead><tbody id="h-body"></tbody></table></div>
+  <p class="hint" id="h-count"></p>`;
+  const draw=()=>{
+    const q=fH.q.toLowerCase();
+    const l=db.movs.filter(x=>{const p=prodById(x.produtoId);
+      return(!fH.from||x.data>=fH.from)&&(!fH.to||x.data<=fH.to)&&(!fH.tipo||x.tipo===fH.tipo)&&
+      (!q||[p?p.nome:'',x.motivo,x.resp,x.parceiro,x.obs].join(' ').toLowerCase().includes(q))}).sort((a,b)=>(b.data+b.id).localeCompare(a.data+a.id));
+    $('#h-body').innerHTML=l.length?l.map(x=>{const p=prodById(x.produtoId);return`<tr><td>${fd(x.data)}</td><td>${tipoBadge(x.tipo)}</td><td>${esc(p?p.nome:'(produto removido)')}</td><td class="num">${fq(x.qtd)} ${esc(p?p.unidade:'')}</td><td class="num">${x.custo>0?fm(x.custo):'—'}</td><td>${esc(x.motivo)}</td><td>${esc(x.parceiro)}</td><td>${esc(x.resp)}</td><td>${esc(x.obs)}</td><td><div class="actions"><button class="btn danger sm" data-del="${x.id}" aria-label="Excluir movimentação">Excluir</button></div></td></tr>`}).join(''):'<tr><td colspan="10" class="empty">Nenhuma movimentação encontrada.</td></tr>';
+    $('#h-count').textContent=`${l.length} movimentação(ões) exibida(s).`;draw.l=l;
+  };
+  $('#h-de').onchange=e=>{fH.from=e.target.value;draw()};$('#h-ate').onchange=e=>{fH.to=e.target.value;draw()};
+  $('#h-t').onchange=e=>{fH.tipo=e.target.value;draw()};$('#h-q').oninput=e=>{fH.q=e.target.value;draw()};
+  $('#h-body').onclick=e=>{const b=e.target.closest('[data-del]');if(!b)return;
+    if(!confirm('Excluir esta movimentação? O saldo do produto será recalculado.'))return;
+    db.movs=db.movs.filter(x=>x.id!==b.dataset.del);save();toast('Movimentação excluída.');draw()};
+  $('#h-csv').onclick=()=>csv(`movimentacoes_${today()}.csv`,[['Data','Tipo','Produto','Quantidade','Unidade','Custo unitário (R$)','Motivo','Fornecedor/destino','Responsável','Observação'],...draw.l.map(x=>{const p=prodById(x.produtoId);return[fd(x.data),x.tipo,p?p.nome:'(removido)',String(x.qtd).replace('.',','),p?p.unidade:'',x.custo>0?String(x.custo).replace('.',','):'',x.motivo,x.parceiro,x.resp,x.obs]})]);
+  draw();
+}
+
+/* ================= Produtos ================= */
+let editId=null;
+function vProd(){
+  const p=editId?prodById(editId):null;
+  const cats=[...new Set(CATS.concat(db.produtos.map(x=>x.categoria).filter(Boolean)))];
+  $('#app').innerHTML=`
+  <h2>Produtos</h2>
+  <form class="card" id="pf" novalidate style="margin-bottom:18px">
+    <h3>${p?'Editar produto':'Novo produto'}</h3>
+    <div class="form">
+      <div><label for="p-cod">Código</label><input id="p-cod" maxlength="20" value="${esc(p?.codigo)}" placeholder="Ex.: INS-011"></div>
+      <div class="full"><label for="p-nome">Nome do produto *</label><input id="p-nome" maxlength="80" required value="${esc(p?.nome)}"></div>
+      <div><label for="p-cat">Categoria</label><input id="p-cat" list="cats" value="${esc(p?.categoria)}"><datalist id="cats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
+      <div><label for="p-un">Unidade</label><input id="p-un" list="uns" value="${esc(p?.unidade||'un')}"><datalist id="uns">${UNITS.map(c=>`<option value="${c}">`).join('')}</datalist></div>
+      <div><label for="p-min">Estoque mínimo</label><input id="p-min" inputmode="decimal" value="${p?String(p.minimo??0).replace('.',','):'0'}"></div>
+      <div><label for="p-custo">Custo de referência (R$)</label><input id="p-custo" inputmode="decimal" value="${p?String(p.custo??0).replace('.',','):'0'}"></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="submit">${p?'Salvar alterações':'Cadastrar produto'}</button>${p?'<button class="btn sec" type="button" id="p-cancel">Cancelar</button>':''}</div>
+  </form>
+  <div class="tablewrap"><table><thead><tr><th>Código</th><th>Produto</th><th>Categoria</th><th>Unid.</th><th class="num">Mínimo</th><th class="num">Custo ref.</th><th></th></tr></thead><tbody>
+  ${[...db.produtos].sort(byName).map(x=>`<tr><td>${esc(x.codigo)}</td><td><b>${esc(x.nome)}</b></td><td>${esc(x.categoria)}</td><td>${esc(x.unidade)}</td><td class="num">${fq(x.minimo||0)}</td><td class="num">${fm(x.custo)}</td><td><div class="actions"><button class="btn sec sm" data-ed="${x.id}">Editar</button><button class="btn danger sm" data-rm="${x.id}">Excluir</button></div></td></tr>`).join('')||'<tr><td colspan="7" class="empty">Nenhum produto cadastrado.</td></tr>'}
+  </tbody></table></div>`;
+  $('#pf').addEventListener('submit',e=>{e.preventDefault();
+    const nome=$('#p-nome').value.trim();if(!nome)return toast('Informe o nome do produto.',true);
+    const min=num($('#p-min').value||'0'),custo=num($('#p-custo').value||'0');
+    if(min===null||min<0||custo===null||custo<0)return toast('Mínimo e custo devem ser números válidos.',true);
+    if(db.produtos.some(x=>x.id!==editId&&x.nome.toLowerCase()===nome.toLowerCase()))return toast('Já existe um produto com esse nome.',true);
+    const o={codigo:$('#p-cod').value.trim(),nome,categoria:$('#p-cat').value.trim(),unidade:$('#p-un').value.trim()||'un',minimo:min,custo};
+    if(editId){Object.assign(prodById(editId),o);toast('Produto atualizado.')}else{db.produtos.push({id:uid(),...o});toast('Produto cadastrado.')}
+    save();editId=null;vProd();});
+  const c=$('#p-cancel');if(c)c.onclick=()=>{editId=null;vProd()};
+  document.querySelector('.tablewrap').onclick=e=>{
+    const ed=e.target.closest('[data-ed]'),rm=e.target.closest('[data-rm]');
+    if(ed){editId=ed.dataset.ed;vProd();window.scrollTo(0,0)}
+    if(rm){const x=prodById(rm.dataset.rm);
+      if(db.movs.some(m=>m.produtoId===x.id))return toast('Este produto tem movimentações e não pode ser excluído. Edite-o se precisar.',true);
+      if(confirm(`Excluir "${x.nome}"?`)){db.produtos=db.produtos.filter(p=>p.id!==x.id);save();toast('Produto excluído.');vProd()}}
+  };
+}
+
+/* ================= Backup ================= */
+function vBackup(){
+  $('#app').innerHTML=`
+  <h2>Backup e dados</h2>
+  <div class="grid two">
+    <section class="card"><h3>Salvar cópia de segurança</h3><p class="hint" style="margin-top:0">Os dados ficam salvos neste navegador, neste computador. Baixe uma cópia com frequência, principalmente antes de limpar o histórico do navegador.</p><button class="btn" id="b-exp">Baixar backup (.json)</button></section>
+    <section class="card"><h3>Restaurar cópia</h3><p class="hint" style="margin-top:0">Substitui todos os dados atuais pelos do arquivo escolhido.</p><input type="file" id="b-file" accept="application/json,.json"></section>
+    <section class="card"><h3>Recomeçar</h3><p class="hint" style="margin-top:0">Apaga todas as movimentações e mantém os produtos cadastrados (para começar o período do zero).</p><button class="btn danger" id="b-mov">Apagar movimentações</button></section>
+    <section class="card"><h3>Restaurar exemplo</h3><p class="hint" style="margin-top:0">Volta ao catálogo de exemplo da sorveteria e apaga tudo o que foi cadastrado.</p><button class="btn danger" id="b-reset">Restaurar dados de exemplo</button></section>
+  </div>`;
+  $('#b-exp').onclick=()=>download(`backup_estoque_sorveteria_${today()}.json`,JSON.stringify(db,null,2),'application/json');
+  $('#b-file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!Array.isArray(d.produtos)||!Array.isArray(d.movs))throw 0;
+      if(!confirm('Substituir todos os dados atuais por este backup?'))return;db=d;save();toast('Backup restaurado.');go('painel')}catch(x){toast('Arquivo de backup inválido.',true)}};r.readAsText(f)};
+  $('#b-mov').onclick=()=>{if(confirm('Apagar TODAS as movimentações? Os produtos serão mantidos.')){db.movs=[];save();toast('Movimentações apagadas.')}};
+  $('#b-reset').onclick=()=>{if(confirm('Apagar tudo e voltar aos dados de exemplo?')){db=seedData();save();toast('Dados de exemplo restaurados.')}};
+}
+
+load();go('painel');
+</script>
+</body>
+</html>
